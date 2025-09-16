@@ -1,0 +1,29 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background: #f8f8f8;
+}
+
+h2 {
+  margin: 10px 0;
+}
+
+video, canvas {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 60px;
+  width: 360px;
+  height: 480px;
+  border-radius: 8px;
+  background: black;
+}
+
+canvas {
+  z-index: 2;
+}
+
+.buttons {
+  margin-top: 560px;
+}

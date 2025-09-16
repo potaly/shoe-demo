@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>试鞋 Demo</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- 引入 MediaPipe Holistic/BlazePose (可检测脚关键点) -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+</head>
+<body>
+  <h2>在线试鞋 Demo</h2>
+  <video id="video" playsinline></video>
+  <canvas id="output"></canvas>
+
+  <div class="buttons">
+    <button onclick="changeShoe('images/shoe1.png')">鞋子1</button>
+    <button onclick="changeShoe('images/shoe2.png')">鞋子2</button>
+    <button onclick="changeShoe('images/shoe3.png')">鞋子3</button>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
