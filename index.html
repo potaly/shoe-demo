@@ -2,20 +2,21 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8">
-  <title>试鞋 Demo</title>
+  <title>试鞋 Demo (JPG版)</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 </head>
 <body>
-  <h2>在线试鞋 Demo</h2>
-  <video id="video" playsinline autoplay muted></video>
-  <canvas id="output"></canvas>
+  <h2>在线试鞋 Demo (JPG)</h2>
+
+  <video id="video" playsinline autoplay muted width="360" height="480"></video>
+  <canvas id="output" width="360" height="480"></canvas>
 
   <div class="buttons">
-    <button onclick="changeShoe('images/111.png')">鞋子1</button>
-    <button onclick="changeShoe('images/222.png')">鞋子2</button>
-    <button onclick="changeShoe('images/333.png')">鞋子3</button>
+    <button onclick="changeShoe('images/111.jpg')">鞋子1</button>
+    <button onclick="changeShoe('images/222.jpg')">鞋子2</button>
+    <button onclick="changeShoe('images/333.jpg')">鞋子3</button>
   </div>
 
   <script src="script.js"></script>
