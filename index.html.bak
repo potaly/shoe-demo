@@ -15,9 +15,9 @@
   <canvas id="output"></canvas>
 
   <div class="buttons">
-    <button onclick="changeShoe('images/shoe1.png')">鞋子1</button>
-    <button onclick="changeShoe('images/shoe2.png')">鞋子2</button>
-    <button onclick="changeShoe('images/shoe3.png')">鞋子3</button>
+    <button onclick="changeShoe('images/111.png')">鞋子1</button>
+    <button onclick="changeShoe('images/222.png')">鞋子2</button>
+    <button onclick="changeShoe('images/333.png')">鞋子3</button>
   </div>
 
   <script src="script.js"></script>
