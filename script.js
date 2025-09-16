@@ -15,7 +15,17 @@ function changeShoe(path) {
   console.log("切换鞋子：" + path);
 }
 
-// 初始化 MediaPipe Pose
+// 平滑滤波存储
+let prevPoints = null;
+function smoothPoint(curr, prev, alpha = 0.7) {
+  if (!prev) return curr;
+  return {
+    x: alpha * curr.x + (1 - alpha) * prev.x,
+    y: alpha * curr.y + (1 - alpha) * prev.y
+  };
+}
+
+// MediaPipe Pose
 const pose = new Pose({
   locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/${file}`
 });
@@ -29,30 +39,20 @@ pose.setOptions({
 
 pose.onResults(onResults);
 
-// ✅ 使用后置摄像头
+// 启动摄像头（后置）
 async function initCamera() {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        width: 360,
-        height: 480,
-        facingMode: { exact: "environment" } // 强制后置
-      },
-      audio: false
-    });
-    videoEl.srcObject = stream;
-    videoEl.play();
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: { facingMode: "environment", width: 360, height: 480 },
+    audio: false
+  });
+  videoEl.srcObject = stream;
+  videoEl.play();
 
-    // 持续送帧给 MediaPipe
-    async function sendFrame() {
-      await pose.send({ image: videoEl });
-      requestAnimationFrame(sendFrame);
-    }
-    sendFrame();
-
-  } catch (err) {
-    console.error("摄像头访问失败:", err);
+  async function sendFrame() {
+    await pose.send({ image: videoEl });
+    requestAnimationFrame(sendFrame);
   }
+  sendFrame();
 }
 initCamera();
 
@@ -62,27 +62,41 @@ function onResults(results) {
 
   if (!results.poseLandmarks) return;
 
-  const ankle = results.poseLandmarks[27]; // 左脚踝
-  const toe = results.poseLandmarks[31];   // 左脚趾
+  // 左脚：踝(27)、大趾(31)、小趾(29)
+  let ankle = {x: results.poseLandmarks[27].x * canvasEl.width, y: results.poseLandmarks[27].y * canvasEl.height};
+  let bigToe = {x: results.poseLandmarks[31].x * canvasEl.width, y: results.poseLandmarks[31].y * canvasEl.height};
+  let smallToe = {x: results.poseLandmarks[29].x * canvasEl.width, y: results.poseLandmarks[29].y * canvasEl.height};
 
-  if (ankle && toe) {
-    const x1 = ankle.x * canvasEl.width;
-    const y1 = ankle.y * canvasEl.height;
-    const x2 = toe.x * canvasEl.width;
-    const y2 = toe.y * canvasEl.height;
+  // 平滑滤波
+  if (prevPoints) {
+    ankle = smoothPoint(ankle, prevPoints.ankle);
+    bigToe = smoothPoint(bigToe, prevPoints.bigToe);
+    smallToe = smoothPoint(smallToe, prevPoints.smallToe);
+  }
+  prevPoints = {ankle, bigToe, smallToe};
 
-    const footLength = Math.hypot(x2 - x1, y2 - y1);
-    const angle = Math.atan2(y2 - y1, x2 - x1);
+  // 用三点定义一个平行四边形（脚的平面）
+  if (shoeImg.complete && shoeImg.naturalWidth > 0) {
+    ctx.save();
 
-    const shoeWidth = footLength * 2;
-    const shoeHeight = shoeWidth * (shoeImg.height / shoeImg.width);
+    // 计算脚的基向量
+    const dx1 = bigToe.x - ankle.x;
+    const dy1 = bigToe.y - ankle.y;
+    const dx2 = smallToe.x - ankle.x;
+    const dy2 = smallToe.y - ankle.y;
 
-    if (shoeImg.complete && shoeImg.naturalWidth > 0) {
-      ctx.save();
-      ctx.translate(x1, y1);
-      ctx.rotate(angle);
-      ctx.drawImage(shoeImg, -shoeWidth / 2, -shoeHeight / 2, shoeWidth, shoeHeight);
-      ctx.restore();
-    }
+    // 缩放鞋子到脚的大小
+    const scale = Math.hypot(dx1, dy1) / shoeImg.width * 2.0;
+
+    // 仿射变换矩阵
+    ctx.setTransform(
+      dx1 / shoeImg.width, dy1 / shoeImg.width,
+      dx2 / shoeImg.height, dy2 / shoeImg.height,
+      ankle.x, ankle.y
+    );
+
+    ctx.drawImage(shoeImg, 0, 0, shoeImg.width, shoeImg.height);
+
+    ctx.restore();
   }
 }

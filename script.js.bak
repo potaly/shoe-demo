@@ -2,7 +2,10 @@ const videoEl = document.getElementById('video');
 const canvasEl = document.getElementById('output');
 const ctx = canvasEl.getContext('2d');
 
-// 默认鞋子 (jpg)
+canvasEl.width = 360;
+canvasEl.height = 480;
+
+// 默认鞋子
 let shoeImg = new Image();
 shoeImg.src = 'images/111.jpg';
 
@@ -12,7 +15,7 @@ function changeShoe(path) {
   console.log("切换鞋子：" + path);
 }
 
-// MediaPipe Pose
+// 初始化 MediaPipe Pose
 const pose = new Pose({
   locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/${file}`
 });
@@ -26,15 +29,32 @@ pose.setOptions({
 
 pose.onResults(onResults);
 
-// 启动摄像头
-const camera = new Camera(videoEl, {
-  onFrame: async () => {
-    await pose.send({ image: videoEl });
-  },
-  width: 360,
-  height: 480
-});
-camera.start();
+// ✅ 使用后置摄像头
+async function initCamera() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        width: 360,
+        height: 480,
+        facingMode: { exact: "environment" } // 强制后置
+      },
+      audio: false
+    });
+    videoEl.srcObject = stream;
+    videoEl.play();
+
+    // 持续送帧给 MediaPipe
+    async function sendFrame() {
+      await pose.send({ image: videoEl });
+      requestAnimationFrame(sendFrame);
+    }
+    sendFrame();
+
+  } catch (err) {
+    console.error("摄像头访问失败:", err);
+  }
+}
+initCamera();
 
 function onResults(results) {
   ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
@@ -42,9 +62,8 @@ function onResults(results) {
 
   if (!results.poseLandmarks) return;
 
-  // 左脚踝（27）和左脚趾（31）
-  const ankle = results.poseLandmarks[27];
-  const toe = results.poseLandmarks[31];
+  const ankle = results.poseLandmarks[27]; // 左脚踝
+  const toe = results.poseLandmarks[31];   // 左脚趾
 
   if (ankle && toe) {
     const x1 = ankle.x * canvasEl.width;
